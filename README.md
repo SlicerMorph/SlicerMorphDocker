@@ -16,4 +16,4 @@ While the container supports Nvidia drivers and GPU, this example for launching 
 
 this will generate a table of containers tied to users name, URL to be accessed and the password to be used. 
 
-
+If you need the R/Rstudio to be built along SlicerMorph, use the Dockerfile.rstudio. However, this increases build time considerably. 
