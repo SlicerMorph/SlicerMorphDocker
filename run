@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -u
+set -e
+
+if [ -z ${VGL_DISPLAY+x} ]; then
+	export VGL_DISPLAY=/dev/dri/card0
+	if [ ! -c /dev/dri/card0 ]; then
+		echo ERROR: /dev/dri/card0 does not exist.
+		exit 1
+	fi
+	if [ ! -r /dev/dri/card0 ]; then
+		echo ERROR: /dev/dri/card0 is not readable.
+		exit 1
+	fi
+	if [ ! -c /dev/dri/renderD128 ]; then
+		echo ERROR: /dev/dri/renderD128 does not exist.
+		exit 1
+	fi
+	if [ ! -r /dev/dri/renderD128 ]; then
+		echo ERROR: /dev/dri/renderD128 is not readable.
+		exit 1
+	fi
+fi
+
+. `dirname $0`/dockername
+CONTAINER_ID=$(docker run -it \
+	-d \
+	--device /dev/dri \
+	-e VGL_DISPLAY \
+	--expose 5801 \
+	--expose 5901 \
+	--gpus all \
+	-P \
+	--rm \
+	$USER/$IMAGE \
+	/opt/TurboVNC/bin/vncserver -fg -autokill -otp -vgl)
+CONTAINER_NAME=$(docker ps --filter "id=$CONTAINER_ID" --format "{{.Names}}")
+echo
+echo Execute:
+echo docker stop $CONTAINER_NAME
+echo "to stop container (or log out of the window manager in the TurboVNC session.)"
+echo
+PORT=$(docker port $CONTAINER_NAME 5901 | cut -f2 -d:)
+NOVNC_PORT=$(docker port $CONTAINER_NAME 5801 | cut -f2 -d:)
+echo VNC DISPLAY = `hostname`::$PORT
+echo "NOVNC URL = http://`hostname`:$NOVNC_PORT/vnc.html?host=`hostname`&port=$PORT&resize=remote"
+OTP=
+while [ "$OTP" = "" ]; do
+	sleep 1
+	OTP=$(docker logs $CONTAINER_NAME | grep "Full control one-time password" | sed 's/.*: //g')
+done
+echo SESSION PASSWORD = $OTP
+docker exec $CONTAINER_NAME sh -c "echo $OTP| /opt/TurboVNC/bin/vncpasswd -f >/home/docker/.vnc/passwd 2>/dev/null"
