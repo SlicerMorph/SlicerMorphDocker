@@ -11,7 +11,7 @@ RUN chmod 755 /etc/tint2 \
  && chmod 644 /etc/tint2/*
 COPY opt /opt
 RUN chmod 755 /opt \
- && chmod 755 /opt/slicer \
+ && chmod 777 /opt/slicer \
  && chmod 644 /opt/slicer/*
 COPY usr/local /usr/local
 RUN chmod 755 /usr/local \
@@ -103,7 +103,7 @@ RUN apt -y install \
  && chmod 600 /home/docker/.vnc/passwd \
  && chown -R 1000:1000 /home/docker/.vnc \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
- && wget http://download.slicer.org/bitstream/1337228 -O slicer.tar.gz \ #Slicer from 9/25/2020 to deal with open3d issue
+ && wget http://download.slicer.org/bitstream/1419000 -O slicer.tar.gz \ #Slicer from 9/25/2020 to deal with open3d issue
  && tar xzf slicer.tar.gz -C /tmp \
  && mv /tmp/Slicer*/* /opt/slicer/ \
  && rm slicer.tar.gz \
