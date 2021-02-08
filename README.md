@@ -9,6 +9,7 @@ While the container supports Nvidia drivers and GPU, this example for launching 
 ```sudo docker build -t cloud .```
 
 2. Create a users file that contains usernames in each line
+3. Create persistent storage points for shared data and user space and modify the **nogpu.sh** accordingly. 
 3. start a container for each user using the command
 
 ```for user in $(cat users); do ./nogpu.sh $user ; done > instance-table.csv```
