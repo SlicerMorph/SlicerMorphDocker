@@ -131,6 +131,7 @@ RUN Rscript -e 'remotes::install_version("BGLR")' \
     && Rscript -e 'remotes::install_version("fastICA" )' \
     && Rscript -e 'remotes::install_version("fpc" )' \
     && Rscript -e 'remotes::install_version("gaston" )' \
+    && Rscript -e 'remotes::install_version("geomorph")' \
     && Rscript -e 'remotes::install_version("ggfortify" )' \
     && Rscript -e 'remotes::install_version("ggplot2" )' \
     && Rscript -e 'remotes::install_version("glasso" )' \
