@@ -106,7 +106,8 @@ RUN apt -y install \
  && tar xzf slicer.tar.gz -C /home/docker/ \
  && mv /home/docker/Sli* /home/docker/slicer \
  && rm slicer.tar.gz \
- && chown -R 1000:1000 /home/docker/slicer \ && apt clean \
+ && chown -R 1000:1000 /home/docker/slicer \ 
+ && apt clean \
  && rm -rf /etc/ld.so.cache \
  && rm -rf /var/cache/ldconfig/* \
  && rm -rf /var/lib/apt/lists/* \
@@ -185,6 +186,7 @@ RUN R CMD INSTALL ANTsR_0.5.6.5_R_x86_64-pc-linux-gnu_R4.0.tar.gz
 
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/tint2/panel.tint2rc | head -1) && \
   sed -i "${LNUM}ilauncher_item_app = /home/docker/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
-  
+
+COPY slicer/* /home/docker/slicer/
 USER docker
 WORKDIR /home/docker
