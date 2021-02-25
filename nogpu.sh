@@ -30,8 +30,8 @@ CONTAINER_ID=$(docker run -it \
         --expose 5801 \
         --expose 5901 \
         -P \
-        -v /data:/workshop_data \
-        -v ${USER_DATA}:/${USERNAME} \
+        -v /data/sample/:/home/docker/workshop_data \
+        -v ${USER_DATA}:/home/docker/${USERNAME} \
         --rm \
         -m 100g \
         cloud \

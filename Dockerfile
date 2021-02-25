@@ -9,10 +9,7 @@ RUN groupadd -g 1000 docker \
 COPY etc/tint2 /etc/tint2
 RUN chmod 755 /etc/tint2 \
  && chmod 644 /etc/tint2/*
-COPY opt /opt
-RUN chmod 755 /opt \
- && chmod 777 /opt/slicer \
- && chmod 644 /opt/slicer/*
+
 COPY usr/local /usr/local
 RUN chmod 755 /usr/local \
  && chmod 755 /usr/local/shared \
@@ -62,6 +59,7 @@ RUN apt -y update \
     x11-xserver-utils \
     xauth \
     pcmanfm \
+    libgomp1 \
  && wget https://s3.amazonaws.com/turbovnc-pr/dev/linux/turbovnc_2.2.80_amd64.deb \
  && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl_2.6.80_amd64.deb \
  && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl32_2.6.80_amd64.deb \
@@ -79,9 +77,10 @@ RUN apt -y update \
  && chown -R 1000:1000 /home/docker/.vnc \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
  && wget http://download.slicer.org/bitstream/1441156 -O slicer.tar.gz \
- && tar xzf slicer.tar.gz -C /tmp \
- && mv /tmp/Slicer*/* /home/docker/slicer/ \
+ && tar xzf slicer.tar.gz -C /home/docker/ \
+ && mv /home/docker/Sli* /home/docker/slicer \
  && rm slicer.tar.gz \
+ && chown -R 1000:1000 /home/docker/slicer \
  && apt clean \
  && rm -rf /etc/ld.so.cache \
  && rm -rf /var/cache/ldconfig/* \
@@ -92,6 +91,6 @@ RUN apt -y update \
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/tint2/panel.tint2rc | head -1) && \
   sed -i "${LNUM}ilauncher_item_app = /home/docker/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
 
-COPY opt/slicer/* /home/docker/slicer/
+COPY slicer/* /home/docker/slicer/
 USER docker
 WORKDIR /home/docker
