@@ -78,9 +78,9 @@ RUN apt -y update \
  && chmod 600 /home/docker/.vnc/passwd \
  && chown -R 1000:1000 /home/docker/.vnc \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
- && wget http://download.slicer.org/bitstream/1429054 -O slicer.tar.gz \
+ && wget http://download.slicer.org/bitstream/1441156 -O slicer.tar.gz \
  && tar xzf slicer.tar.gz -C /tmp \
- && mv /tmp/Slicer*/* /opt/slicer/ \
+ && mv /tmp/Slicer*/* /home/docker/slicer/ \
  && rm slicer.tar.gz \
  && apt clean \
  && rm -rf /etc/ld.so.cache \
@@ -90,7 +90,7 @@ RUN apt -y update \
  && rm -rf /var/tmp/*
 
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/tint2/panel.tint2rc | head -1) && \
-  sed -i "${LNUM}ilauncher_item_app = /opt/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
+  sed -i "${LNUM}ilauncher_item_app = /home/docker/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
 
 USER docker
 WORKDIR /home/docker
