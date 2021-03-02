@@ -71,6 +71,7 @@ RUN apt -y install \
     x11-xserver-utils \
     xauth \
     pcmanfm \
+    xarchiver \
     libgomp1 \
     gdebi-core \
     libxml2-dev \
