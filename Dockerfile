@@ -59,6 +59,7 @@ RUN apt -y update \
     x11-xserver-utils \
     xauth \
     pcmanfm \
+    xarchiver \
     libgomp1 \
  && wget https://s3.amazonaws.com/turbovnc-pr/dev/linux/turbovnc_2.2.80_amd64.deb \
  && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl_2.6.80_amd64.deb \
