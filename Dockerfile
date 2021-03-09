@@ -91,7 +91,7 @@ RUN apt -y update \
 
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/tint2/panel.tint2rc | head -1) && \
   sed -i "${LNUM}ilauncher_item_app = /home/docker/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
-
+COPY etc/tint2/tint2rc.slicermorph /home/docker/.config/tint2/tintrc
 COPY slicer/* /home/docker/slicer/
 USER docker
 WORKDIR /home/docker
