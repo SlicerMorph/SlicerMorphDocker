@@ -30,10 +30,12 @@ CONTAINER_ID=$(docker run -it \
         --expose 5801 \
         --expose 5901 \
         -P \
-        -v /data/sample/:/home/docker/workshop_data \
+        -v /data/sample/:/home/docker/workshop_data:ro \
         -v ${USER_DATA}:/home/docker/${USERNAME} \
+        -v /mnt/resource/:/home/docker/temp \
         --rm \
         -m 100g \
+        --cpus=12
         cloud \
         /opt/TurboVNC/bin/vncserver -fg -autokill -otp )
 # CONTAINER_NAME=$(docker ps --filter "id=$CONTAINER_ID" --format "{{.Names}}")
