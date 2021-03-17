@@ -35,7 +35,7 @@ CONTAINER_ID=$(docker run -it \
         -v /mnt/resource/:/home/docker/temp \
         --rm \
         -m 100g \
-        --cpus=12
+        --cpus=12 \
         cloud \
         /opt/TurboVNC/bin/vncserver -fg -autokill -otp )
 # CONTAINER_NAME=$(docker ps --filter "id=$CONTAINER_ID" --format "{{.Names}}")
