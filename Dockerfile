@@ -61,9 +61,9 @@ RUN apt -y update \
     pcmanfm \
     xarchiver \
     libgomp1 \
- && wget https://s3.amazonaws.com/turbovnc-pr/dev/linux/turbovnc_2.2.80_amd64.deb \
- && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl_2.6.80_amd64.deb \
- && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl32_2.6.80_amd64.deb \
+ && wget -O turbovnc.deb https://sourceforge.net/projects/turbovnc/files/2.2.6/turbovnc_2.2.6_amd64.deb/download \
+ && wget -O virtualgl.deb https://sourceforge.net/projects/virtualgl/files/2.6.95%20%283.0rc1%29/virtualgl_2.6.95_amd64.deb/download \
+ && wget -O virtualgl32.deb https://sourceforge.net/projects/virtualgl/files/2.6.95%20%283.0rc1%29/virtualgl32_2.6.95_amd64.deb/download \
  && dpkg -i turbovnc*.deb virtualgl*.deb \
  && rm *.deb \
  && apt install -f \
@@ -77,7 +77,7 @@ RUN apt -y update \
  && chmod 600 /home/docker/.vnc/passwd \
  && chown -R 1000:1000 /home/docker/.vnc \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
- && wget http://download.slicer.org/bitstream/1442746 -O slicer.tar.gz \
+ && wget https://download.slicer.org/bitstream/6191eb9d342a877cb3dec547 -O slicer.tar.gz \
  && tar xzf slicer.tar.gz -C /home/docker/ \
  && mv /home/docker/Sli* /home/docker/slicer \
  && rm slicer.tar.gz \
