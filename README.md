@@ -21,7 +21,7 @@ Last two steps can be skipped on non-GPU hosts.
 1. Either execute the `build.sh` script, or use `docker build -t mmaga/vgl_slicer:eglbackend .`
 
 ## Setting up users on host
-1. Review the `run` script to limit resource (memory and cpu) allocations to each instance, we will use this as a way to configure each users allocation. Make sure container tag matches to the one you used during the build (in this case  mmaga/vgl_slicer:eglbackend)
+1. Review the `run` script to limit resource (gpu, memory and cpu) allocations to each instance, we will use this as a way to configure each users allocation. Make sure container tag matches to the one you used during the build (in this case  mmaga/vgl_slicer:eglbackend). There are some differences in environmental variable declarations in session with or without GPU. See `run.novgl` as an example of non-GPU session. 
 2. Create a user an host (e.g., test1) and setup ssh password. (Below we use test1 as example, edit this to match the user account).
 3. Soft link (or use bindfs) users persistent storage to a /home/test1/MyData 
 4. Create __/home/test1/.vnc/__ folder on host
