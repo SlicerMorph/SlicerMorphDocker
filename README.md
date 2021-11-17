@@ -17,6 +17,16 @@ This repository enable you to launch a VM (a host) to deploy SlicerMorpCloud doc
 ## Build docker
 1. Either execute the `build.sh` script, or use `docker build -t mmaga/vgl_slicer:eglbackend .`
 
-## Docker runtime variables.
-1. Edit the `run` script to limit resource (memory and cpu) allocations to each instance
-2. Review 
+## Setting up users.
+1. Review the `run` script to limit resource (memory and cpu) allocations to each instance, we will use this as a way to configure each users allocation. Make sure container tag matches to the one you used during the build (in this case  mmaga/vgl_slicer:eglbackend)
+2. Create a user an host (e.g., test1) and setup ssh password. (Below we use test1 as example, edit this to match the user account).
+3. Soft link (or use bindfs) users persistent storage to a /home/test1/MyData 
+4. Create. /home/test1/.vnc/ folder on host
+5. Copy /etc/turbovncserver.conf to /home/test1/.vnc
+6. Uncomment `#$xstartup ` line in /home/test1/.vnc/turbovncserver.conf line and point it to the user's start docker run script e.g., `$xstartup = "/usr/local/vgl/test1.run.novgl"`
+7. Create the reference script (/usr/local/vgl/test1.run.novgl) using the run script provided as a starting point (adjust GPU assignment, CPU cores, memory, and persistent storage point) and make it executable.
+
+At this step users should be able to access the system using the TurboVNC client on their computer by entering the syntax `test1@HOST.ADDRESS`
+and entering their SSH password. 
+
+Once the setup works, rest can be configured via number of bash scripts (not provided yet).
