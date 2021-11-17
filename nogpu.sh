@@ -17,12 +17,6 @@ if [ "$1" == "" ]; then
 fi
 USERNAME=$1
 
-USER_DATA="/data/users/${USERNAME}"
-if [ ! -d ${USER_DATA} ]; then
-        mkdir ${USER_DATA}
-        chmod 777 ${USER_DATA}
-fi
-
 CONTAINER_NAME=${USERNAME}
 CONTAINER_ID=$(docker run -it \
         --name ${CONTAINER_NAME} \
@@ -30,12 +24,9 @@ CONTAINER_ID=$(docker run -it \
         --expose 5801 \
         --expose 5901 \
         -P \
-        -v /data/sample/:/home/docker/workshop_data:ro \
-        -v ${USER_DATA}:/home/docker/${USERNAME} \
-        -v /mnt/resource/:/home/docker/temp \
         --rm \
         -m 100g \
-        --cpus=12 \
+        --cpus=4 \
         cloud \
         /opt/TurboVNC/bin/vncserver -fg -autokill -otp )
 # CONTAINER_NAME=$(docker ps --filter "id=$CONTAINER_ID" --format "{{.Names}}")
