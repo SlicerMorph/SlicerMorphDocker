@@ -14,9 +14,8 @@ This repository enable you to launch a VM (a host) to deploy SlicerMorpCloud doc
 Last two steps can be skipped on non-GPU hosts.
 
 ## Prerequsites to docker build
-1. If your host doesn't have GPU, you can comment out the lines related to VirtualGL in Dockerfile. VGL has no bearing on non-accelerated instances.
-2. Review the contents of dockername file. If you are planning to push the image to your docker hub account, edit it appropriately, otherwise you can leave it as is.
-3. Create persistent storage volumes that will be mounted under the /home/docker for user's data. Depending on how you want your users to access There is some tricks to this, and you may need the bindfs package on the host system to get the permissions on the host side as well as docker side correctly.
+1. Review the contents of dockername file. If you are planning to push the image to your docker hub account, edit it appropriately, otherwise you can leave it as is.
+2. Create persistent storage volumes that will be mounted under the /home/docker for user's data. Depending on how you want your users to access There is some tricks to this, and you may need the bindfs package on the host system to get the permissions on the host side as well as docker side correctly.
 
 ## Build docker
 1. Either execute the `build.sh` script, or use `docker build -t mmaga/vgl_slicer:eglbackend .`
