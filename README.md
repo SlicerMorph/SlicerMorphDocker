@@ -30,3 +30,7 @@ At this step users should be able to access the system using the TurboVNC client
 and entering their SSH password. 
 
 Once the setup works, rest can be configured via number of bash scripts (not provided yet).
+
+## How users bring their data in?
+1. Use the built-in Firefox browser in the container image to bring data directly to their session (important to save it to persistent storage). 
+2. Use scp or sftp (if configure) to access the host and copy data to their persistent storage, which is mapped in the example above (/home/test1/MyData). 
