@@ -31,7 +31,7 @@ Last two steps can be skipped on non-GPU hosts.
 7. Create the reference script (e.g., /usr/local/vgl-scripts/test1.run.novgl) using the run script provided as a starting point (adjust GPU assignment, CPU cores, memory, and persistent storage point) and make it executable.
 
 At this step users should be able to access the system using the TurboVNC client on their computer by entering the syntax `test1@HOST.ADDRESS`
-and entering their SSH password. 
+and entering their SSH password. (Note: you can, edit the sshd_config's on per user-basis if you want to limit users ssh access to the host (PermitTTY=NO))  
 
 Once this example works, rest can be configured via number of bash scripts (not provided yet).
 
