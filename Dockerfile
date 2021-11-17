@@ -62,8 +62,8 @@ RUN apt -y update \
     xarchiver \
     libgomp1 \
  && wget https://s3.amazonaws.com/turbovnc-pr/dev/linux/turbovnc_2.2.80_amd64.deb \
- && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl_2.6.80_amd64.deb \
- && wget https://s3.amazonaws.com/virtualgl-pr/dev/linux/virtualgl32_2.6.80_amd64.deb \
+ && wget https://s3.amazonaws.com/virtualgl-pr/main/linux/virtualgl_3.0_amd64.deb \
+ && wget https://s3.amazonaws.com/virtualgl-pr/main/linux/virtualgl32_3.0_amd64.deb \
  && dpkg -i turbovnc*.deb virtualgl*.deb \
  && rm *.deb \
  && apt install -f \
@@ -77,11 +77,6 @@ RUN apt -y update \
  && chmod 600 /home/docker/.vnc/passwd \
  && chown -R 1000:1000 /home/docker/.vnc \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
- && wget http://download.slicer.org/bitstream/1442746 -O slicer.tar.gz \
- && tar xzf slicer.tar.gz -C /home/docker/ \
- && mv /home/docker/Sli* /home/docker/slicer \
- && rm slicer.tar.gz \
- && chown -R 1000:1000 /home/docker/slicer \
  && apt clean \
  && rm -rf /etc/ld.so.cache \
  && rm -rf /var/cache/ldconfig/* \
@@ -92,6 +87,5 @@ RUN apt -y update \
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/tint2/panel.tint2rc | head -1) && \
   sed -i "${LNUM}ilauncher_item_app = /home/docker/slicer/slicer.desktop" /etc/tint2/panel.tint2rc
 COPY etc/tint2/tint2rc.slicermorph /home/docker/.config/tint2/tintrc
-COPY slicer/* /home/docker/slicer/
 USER docker
 WORKDIR /home/docker
