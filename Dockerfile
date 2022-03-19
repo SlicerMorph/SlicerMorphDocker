@@ -67,17 +67,7 @@ RUN apt -y install \
     cmake \
     cmake-curses-gui \
     curl \
-    r-base \
-    r-base-core \
-    r-recommended \
-    r-base-dev \
-    r-cran-rgl \
     pigz \
- && wget https://s3.amazonaws.com/virtualgl-pr/main/linux/virtualgl_2.6.91_amd64.deb \
- && dpkg -i virtualgl*.deb \
- && wget https://download1.rstudio.org/desktop/bionic/amd64/rstudio-1.4.1717-amd64.deb \
- && gdebi --non-interactive rstu*.deb \
- && rm *.deb \
  && apt install -f \
  && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
  && apt clean \
@@ -90,15 +80,20 @@ RUN apt -y install \
 RUN perl -i -p0e 's/  <separator \/>\n  <item label=\"Exit\">\n.*\n  <\/item>\n//s' /etc/xdg/openbox/menu.xml
 RUN perl -i -p0e 's/  <item label=\"ObConf\">\n[^\n]*\n  <\/item>\n//s' /etc/xdg/openbox/menu.xml
 RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/xdg/tint2/tint2rc | head -1) && \
-  sed -i "${LNUM}ilauncher_item_app = /usr/share/applications/slicer-vgl.desktop" /etc/xdg/tint2/tint2rc && \
   sed -i "${LNUM}ilauncher_item_app = /usr/share/applications/slicer.desktop" /etc/xdg/tint2/tint2rc && \
   sed -i "/^launcher_item_app = tint2conf\.desktop$/d" /etc/xdg/tint2/tint2rc
 
+RUN wget -O Slicer.tgz https://app.box.com/shared/static/3ct13tnaravkhzv0q1mm2lvh5s4oe8zr.gz
+RUN tar zxf Slicer.tgz -C /tmp
+RUN mv /tmp/Slicer /home/docker
+RUN rm -fr /tmp/Slicer Slicer.tgz
+
 RUN mkdir -p /home/docker/.config/NA-MIC
 COPY ./Slicer.ini /home/docker/.config/NA-MIC/Slicer.ini
+COPY /usr/local/shared/backgrounds/Slicer.png /home/docker/Slicer/ 
 
 RUN mkdir /home/docker/.config/tint2
-COPY tint2rc /home/docker/.config/tint2
+COPY etc/tint2/tint2rc.slicermorph /home/docker/.config/tint2/tintrc
 RUN chown -R 1000.1000 /home/docker/.config
 
 COPY usr/local /usr/local
@@ -110,11 +105,6 @@ COPY usr/share/applications /usr/share/applications
 RUN chmod 755 /usr/share/applications \
  && chmod 644 /usr/share/applications/*
 
-ENV RETICULATE_MINICONDA_PATH="/home/docker/MyData/r-miniconda/"
-RUN mkdir /home/docker/.conda
-RUN echo -e "/home/docker/MyData/r-miniconda \n /home/docker/MyData/r-miniconda/envs/r-reticulate" > /home/docker/.conda/environments.txt
 
-COPY .Rprofile /home/docker/
-RUN chown -R 1000.1000 /home/docker/.Rprofile
 USER docker
 WORKDIR /home/docker

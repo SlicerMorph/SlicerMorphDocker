@@ -1,9 +1,9 @@
 [Desktop Entry]
 Name=Slicer
 Comment=3D Slicer
-Exec=/home/docker/slicer/Slicer ${SLICER_ARGUMENTS}
+Exec=/home/docker/Slicer/Slicer ${SLICER_ARGUMENTS}
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Icon=/home/docker/slicer/slicer.png
+Icon=/home/docker/Slicer/Slicer.png
 Categories=Utilities;
