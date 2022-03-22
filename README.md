@@ -7,8 +7,8 @@ This repository enable you to launch a VM (a host) to deploy SlicerMorpCloud doc
 ## Prerequsites for host
 1. If this is a GPU node, latest Nvidia Linux drivers need to be installed
 2. install docker, nvidia-docker, create docker group (each user will be added to docker group).  
-3. TurboVNC prerelease from https://s3.amazonaws.com/turbovnc-pr/dev/linux/index.html 
-4. Install the latest VirtualGL dev/3.0 evolving pre-release build (https://virtualgl.org/DeveloperInfo/PreReleases) on the host, using the procedure described in the VirtualGL User's Guide.
+3. TurboVNC  from https://sourceforge.net/projects/turbovnc/files/ (Use 3.0 beta1 or later)
+4. Install the latest VirtualGL (3.0 or later) build (https://sourceforge.net/projects/virtualgl/files/) on the host, using the procedure described in the VirtualGL User's Guide.
 5. sudo vglserver_config (Select Option 3.)
 
 Last two steps can be skipped on non-GPU hosts.
