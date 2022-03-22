@@ -28,5 +28,5 @@ docker run \
         -v /bound/$USER:/home/docker/MyData   \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         --name $USER \
-        mmaga/new_slicer \
+        $DOCKERUSER/$DOCKERIMAGE \
         openbox-session
