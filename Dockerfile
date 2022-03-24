@@ -67,7 +67,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt -y install \
     cmake-curses-gui \
     curl \
     pigz \
+    vlc \
  && apt install -f \
+ && strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5 \
  && apt clean \
  && rm -rf /etc/ld.so.cache \
  && rm -rf /var/cache/ldconfig/* \
@@ -85,6 +87,8 @@ COPY ./Slicer.ini /home/docker/.config/NA-MIC/Slicer.ini
 COPY /usr/local/shared/backgrounds/Slicer.png /home/docker/Slicer/ 
 RUN chown 1000.1000 /home/docker/Slicer/Slicer.png
 
+RUN mkdir -p /home/docker/.config/vlc
+COPY ./.config/vlc/vlcrc /home/docker/.config/vlc/vlcrc
 RUN chown -R 1000.1000 /home/docker/.config
 
 COPY etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/panel/default.xml
