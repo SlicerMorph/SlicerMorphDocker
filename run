@@ -48,4 +48,4 @@ docker run \
         --cpus=4 \
         --name $USER \
         $DOCKERUSER/$DOCKERIMAGE \
-        openbox-session
+        xfce4-session

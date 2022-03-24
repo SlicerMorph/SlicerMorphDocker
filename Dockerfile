@@ -19,7 +19,7 @@ RUN add-apt-repository ppa:c2d4u.team/c2d4u4.0+
 RUN apt -y update
 RUN apt-get install -y sudo
 RUN apt-get install -y python3 python3-pip
-RUN apt -y install \
+RUN DEBIAN_FRONTEND=noninteractive apt -y install \
     sudo \
     dbus-x11 \
     emacs-nox \
@@ -47,9 +47,8 @@ RUN apt -y install \
     libxv1 \
     libxv1:i386 \
     mate-terminal \
-    openbox-menu \
+    xfce4 \
     python \
-    tint2 \
     vim-common \
     wget \
     x11-utils \
@@ -69,19 +68,12 @@ RUN apt -y install \
     curl \
     pigz \
  && apt install -f \
- && echo 'tint2 &' >>/etc/xdg/openbox/autostart \
  && apt clean \
  && rm -rf /etc/ld.so.cache \
  && rm -rf /var/cache/ldconfig/* \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/* \
  && rm -rf /var/tmp/*
-
-RUN perl -i -p0e 's/  <separator \/>\n  <item label=\"Exit\">\n.*\n  <\/item>\n//s' /etc/xdg/openbox/menu.xml
-RUN perl -i -p0e 's/  <item label=\"ObConf\">\n[^\n]*\n  <\/item>\n//s' /etc/xdg/openbox/menu.xml
-RUN LNUM=$(sed -n '/launcher_item_app/=' /etc/xdg/tint2/tint2rc | head -1) && \
-  sed -i "${LNUM}ilauncher_item_app = /usr/share/applications/slicer.desktop" /etc/xdg/tint2/tint2rc && \
-  sed -i "/^launcher_item_app = tint2conf\.desktop$/d" /etc/xdg/tint2/tint2rc
 
 RUN wget -O Slicer.tgz https://app.box.com/shared/static/3ct13tnaravkhzv0q1mm2lvh5s4oe8zr.gz
 RUN tar zxf Slicer.tgz -C /tmp
@@ -91,10 +83,21 @@ RUN rm -fr /tmp/Slicer Slicer.tgz
 RUN mkdir -p /home/docker/.config/NA-MIC
 COPY ./Slicer.ini /home/docker/.config/NA-MIC/Slicer.ini
 COPY /usr/local/shared/backgrounds/Slicer.png /home/docker/Slicer/ 
+RUN chown 1000.1000 /home/docker/Slicer/Slicer.png
 
-RUN mkdir /home/docker/.config/tint2
-COPY etc/tint2/tint2rc.slicermorph /home/docker/.config/tint2/tintrc
 RUN chown -R 1000.1000 /home/docker/.config
+
+COPY etc/xdg/xfce4/panel/default.xml /etc/xdg/xfce4/panel/default.xml
+RUN chmod 644 /etc/xdg/xfce4/panel/default.xml
+RUN rm /etc/xdg/autostart/light-locker.desktop
+RUN rm /etc/xdg/autostart/pulseaudio.desktop
+RUN rm /usr/share/applications/exo-mail-reader.desktop
+RUN rm /usr/share/applications/light-locker-settings.desktop
+RUN rm /usr/share/applications/nm-connection-editor.desktop
+RUN rm /usr/share/applications/org.freedesktop.IBus.Setup.desktop
+RUN rm /usr/share/applications/pavucontrol.desktop
+RUN rm /usr/share/applications/xfce4-color-settings.desktop
+RUN rm /usr/share/applications/xfce4-notifyd-config.desktop
 
 COPY usr/local /usr/local
 RUN chmod 755 /usr/local \
