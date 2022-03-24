@@ -26,6 +26,7 @@ docker run \
         --rm \
         -v $XAUTHFILE:/home/docker/.Xauthority \
         -v /bound/$USER:/home/docker/MyData   \
+        -v /bound/$USER/Downloads:/home/docker/Downloads \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         --name $USER \
         $DOCKERUSER/$DOCKERIMAGE \
