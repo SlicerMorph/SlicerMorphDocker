@@ -43,9 +43,10 @@ docker run \
         -v $XAUTHFILE:/home/docker/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
         -v /data/docker_bind/$USER:/home/docker/mydata \
+        -v /data/docker_bind/$USER/Downloads:/home/docker/Downloads \
         --memory=16g \
         --memory-reservation=10g \
         --cpus=4 \
         --name $USER \
         $DOCKERUSER/$DOCKERIMAGE \
-        openbox-session
+        xfce4-session
