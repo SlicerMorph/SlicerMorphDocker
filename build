@@ -4,4 +4,4 @@ set -u
 set -e
 
 . `dirname $0`/dockername
-exec docker build -t $DOCKERUSER/$DOCKERIMAGE `dirname $0`
+exec docker build ${1+"$@"} -t $DOCKERUSER/$DOCKERIMAGE `dirname $0`

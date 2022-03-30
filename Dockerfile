@@ -68,6 +68,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt -y install \
     curl \
     pigz \
     vlc \
+    ristretto \
  && apt install -f \
  && strip --remove-section=.note.ABI-tag /usr/lib/x86_64-linux-gnu/libQt5Core.so.5 \
  && apt clean \
@@ -102,6 +103,10 @@ RUN rm /usr/share/applications/org.freedesktop.IBus.Setup.desktop
 RUN rm /usr/share/applications/pavucontrol.desktop
 RUN rm /usr/share/applications/xfce4-color-settings.desktop
 RUN rm /usr/share/applications/xfce4-notifyd-config.desktop
+
+RUN sed -ie 's@MimeType=\(.*\)image/gif;image/jpeg;image/png;\(.*\)@MimeType=\1\2@g' /usr/share/applications/firefox.desktop
+RUN update-mime-database /usr/share/mime
+RUN update-desktop-database /usr/share/applications
 
 COPY usr/local /usr/local
 RUN chmod 755 /usr/local \
