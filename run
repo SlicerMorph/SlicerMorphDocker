@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -u
 set -e
@@ -47,6 +47,6 @@ docker run \
         --memory=16g \
         --memory-reservation=10g \
         --cpus=4 \
-        --name $USER \
+        --name $USER-${DISPLAY//:} \
         $DOCKERUSER/$DOCKERIMAGE \
         xfce4-session
