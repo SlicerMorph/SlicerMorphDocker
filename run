@@ -33,6 +33,20 @@ esac
 chmod 444 $XAUTHFILE
 
 . `dirname $0`/dockername
+# Execute /bound/$USER/.smc-docker/run, if it exists and is executable.  This
+# allows for per-user customization of the Docker container.  The per-user run
+# script can override DOCKERUSER or DOCKERIMAGE, which will cause this script
+# to run a different Docker image than the default image that was set by the
+# dockername script.  The per-user run script can also run the Docker image
+# itself and set DOCKERSTARTED=1 to instruct this script not to run the Docker
+# image.
+if [ -x /bound/$USER/.smc-docker/run ]; then
+  echo "Executing /bound/$USER/.smc-docker/run ..."
+  . /bound/$USER/.smc-docker/run
+  if [ $DOCKERSTARTED = 1 ]; then
+    exit 0
+  fi
+fi
 docker run \
         --device=/dev/dri \
         -e DISPLAY \
