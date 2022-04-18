@@ -56,8 +56,10 @@ docker run \
         --rm \
         -v $XAUTHFILE:/home/docker/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
-        -v /data/docker_bind/$USER:/home/docker/mydata \
-        -v /data/docker_bind/$USER/Downloads:/home/docker/Downloads \
+        -v /bound/$USER:/home/docker/MyData \
+        -v /bound/$USER/Downloads:/home/docker/Downloads \
+        -v /bound/$USER/Slicer:/home/docker/Slicer \
+        -v /bound/$USER/.config/NA-MIC:/home/docker/.config/NA-MIC \
         --memory=16g \
         --memory-reservation=10g \
         --cpus=4 \

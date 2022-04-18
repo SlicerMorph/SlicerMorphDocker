@@ -78,16 +78,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt -y install \
  && rm -rf /tmp/* \
  && rm -rf /var/tmp/*
 
-RUN wget -O Slicer.tgz https://app.box.com/shared/static/3ct13tnaravkhzv0q1mm2lvh5s4oe8zr.gz
-RUN tar zxf Slicer.tgz -C /tmp
-RUN mv /tmp/Slicer /home/docker
-RUN rm -fr /tmp/Slicer Slicer.tgz
-
-RUN mkdir -p /home/docker/.config/NA-MIC
-COPY ./Slicer.ini /home/docker/.config/NA-MIC/Slicer.ini
-COPY /usr/local/shared/backgrounds/Slicer.png /home/docker/Slicer/ 
-RUN chown 1000.1000 /home/docker/Slicer/Slicer.png
-
 RUN mkdir -p /home/docker/.config/vlc
 COPY ./.config/vlc/vlcrc /home/docker/.config/vlc/vlcrc
 RUN chown -R 1000.1000 /home/docker/.config
