@@ -38,9 +38,9 @@ docker run \
         -e DISPLAY \
         --ipc host \
         --rm \
-	--memory=64g \
-	--memory-reservation=32g \
-	--cpus=8 \
+	--memory=100g \
+	--memory-reservation=30g \
+	--cpus=12 \
         -v $XAUTHFILE:/home/docker/.Xauthority \
         -v /bound/$USER:/home/docker/mydata \
         -v /bound/$USER/Downloads:/home/docker/Downloads \
