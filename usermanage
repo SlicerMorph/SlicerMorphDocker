@@ -262,9 +262,9 @@ if [ "$MODE" = "add" ]; then
 			# Set initial password for user account.
 			echo "${USERNAMES[$i]}:$PASSWORD" | chpasswd
 			# Unset PASSWORD variable to minimize the chances of snooping.
-			PASSWORD=
+			#PASSWORD=
 			# Force the user to change their password at the next login.
-			passwd -e ${USERNAMES[$i]}
+			#passwd -e ${USERNAMES[$i]}
 		)
 
 		# Create /mydata directory if it doesn't exist, and ensure that everyone
@@ -274,8 +274,10 @@ if [ "$MODE" = "add" ]; then
 		createdir /mydata/${USERNAMES[$i]} ${USERNAMES[$i]} 700
 		createdir /mydata/${USERNAMES[$i]}/Downloads ${USERNAMES[$i]} 700
 		createdir /mydata/${USERNAMES[$i]}/SlicerScenes ${USERNAMES[$i]} 700
-		createdir /mydata/${USERNAMES[$i]}/.config ${USERNAMES[$i]} 700
-		createdir /mydata/${USERNAMES[$i]}/.config/NA-MIC ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/SlicerTmp ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/SlicerDownloads ${USERNAMES[$i]} 700
+		# createdir /mydata/${USERNAMES[$i]}/.config ${USERNAMES[$i]} 700
+		# createdir /mydata/${USERNAMES[$i]}/.config/NA-MIC ${USERNAMES[$i]} 700
 		# Create /bound directory if it doesn't exist, and ensure that everyone
 		# can see the directories under it.
 		createdir /bound $USER 755
@@ -292,14 +294,16 @@ if [ "$MODE" = "add" ]; then
 			mount /bound/${USERNAMES[$i]}
 		)
 
+		# this section is not necessary as we will keep the Slicer.ini in the same location as the Slicer-XXXXX.ini, namely under Slicer/NA-MIC root (AMM)
 		# Copy default Slicer.ini to /mydata/{user}/.config/NA-MIC/, if Slicer.ini
 		# doesn't already exist in that location.
-		if [ ! -f /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini ]; then
-			echo "Copying default Slicer.ini to /mydata/${USERNAMES[$i]}/.config/NA-MIC/ ..."
-			cp $SCRIPTDIR/Slicer.ini /mydata/${USERNAMES[$i]}/.config/NA-MIC/
-			chown ${USERNAMES[$i]}:${USERNAMES[$i]} /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
-			chmod 600 /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
-		fi
+		#if [ ! -f /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini ]; then
+		#	echo "Copying default Slicer.ini to /mydata/${USERNAMES[$i]}/.config/NA-MIC/ ..."
+		#	cp $SCRIPTDIR/Slicer.ini /mydata/${USERNAMES[$i]}/.config/NA-MIC/
+		#	chown ${USERNAMES[$i]}:${USERNAMES[$i]} /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
+		#	chmod 600 /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
+		#fi
+		
 		# Copy default Slicer NA-MIC directory to /mydata/{user}/Slicer/, if that
 		# directory doesn't already exist.
 		createdir /mydata/${USERNAMES[$i]}/Slicer ${USERNAMES[$i]} 700
