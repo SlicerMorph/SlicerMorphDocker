@@ -1,0 +1,381 @@
+#!/bin/bash
+
+###############################################################################
+# SlicerMorphCloud user management script
+###############################################################################
+
+# Exit script immediately if any errors occur or any variables are undefined.
+set -e
+set -u
+
+# Full path of this script
+SCRIPTDIR=$(dirname "$(realpath "$0")")
+
+# Exit script immediately if a non-root user attempts to run it.
+if [ "$EUID" -ne 0 ]; then
+	echo "ERROR: This script must be executed by the root user."
+	exit 1
+fi
+
+#=================
+# Global variables
+#=================
+
+# URL of Slicer tarball to install for all users.  This will be cached under
+# ~/.smc-usermanage/slicer so that it isn't necessary to re-download the
+# tarball for each user.
+SLICERURL=https://app.box.com/shared/static/3ct13tnaravkhzv0q1mm2lvh5s4oe8zr.gz
+
+#=================
+# Global functions
+#=================
+
+# Function for displaying usage information
+usage() {
+	echo
+	echo "USAGE: $0 add <CSV file>"
+	echo "       $0 delete <user name> [-y]"
+	echo
+	echo "Options for adding users:"
+	echo "<CSV file> = comma-separated value file containing information about users to"
+	echo "             add.  This script expects the CSV file to specify one user per"
+	echo "             line and for each line to contain at least four fields."
+	echo "               Field 3 should contain the user's ORCID (may include a URL.)"
+	echo "               Field 4 should contain the user's full name."
+	echo "               All other fields are ignored."
+	echo "               The first line is also ignored (presumed to be a header.)"
+	echo "             Adding users is idempotent, meaning that no unnecessary action"
+	echo "             will be taken.  The script will perform each step only if"
+	echo "             needed, so it is safe to re-run the script in order to add new"
+	echo "             users or to update the Slicer installation for all users."
+	echo
+	echo "Options for deleting users:"
+	echo "<user name> = User name to delete"
+	echo "-y = Delete user's home directory and data directory without prompting"
+	echo
+	exit 0
+}
+
+# Function for verifying whether a user exists
+userexists() {
+	if [ $# -lt 1 ]; then
+		echo "USAGE: userexists <username>"
+		return 1
+	fi
+	id $1 >/dev/null 2>&1
+}
+
+# Function for creating a directory with specific permissions
+createdir() {
+	if [ $# -lt 3 ]; then
+		echo "USAGE: createdir <directory> <owner> <permissions>"
+		return 1
+	fi
+	if [ ! -d "$1" ]; then
+		echo "Creating $1 ..."
+		mkdir "$1"
+	fi
+	chmod $3 "$1"
+	chown $2:$2 "$1"
+}
+
+# Function for deleting a directory and its contents with optional prompting
+deletedir() {
+	if [ $# -lt 3 ]; then
+		echo "USAGE: deletedir <directory> <description> <prompt>"
+		return 1
+	fi
+	if [ -d "$1" ]; then
+		if [ "$3" = "0" ]; then
+			rm -r "$1"
+		else
+			while [ 1 ]; do
+				echo "Delete $2 ($1) [y/N]?"
+				read CHOICE
+				case $CHOICE in
+					[yY]*) rm -r "$1"; break ;;
+					*) break ;;
+				esac
+			done
+		fi
+	fi
+}
+
+#=================
+
+# Display usage information if not enough arguments are supplied or if the mode
+# argument is incorrect.
+if [ $# -lt 1 ]; then
+	usage
+else
+	if [ "$1" != "add" -a "$1" != "delete" ]; then
+		usage
+	fi
+	if [ $# -lt 2 ]; then
+		usage
+	fi
+	MODE=$1
+fi
+
+#==============
+# User addition
+#==============
+
+# Initialize username and full name arrays.
+USERNAMES=()
+FULLNAMES=()
+
+if [ "$MODE" = "add" ]; then
+
+	# Verify that the specified CSV file exists.
+	CSVFILE=$2
+	if [ ! -f "$CSVFILE" ]; then
+		echo "ERROR: $CSVFILE does not exist."
+		exit 1
+	fi
+
+	# Parse CSV file
+	echo Parsing CSV file ...
+	LINE=2
+	while IFS=',' read -ra array; do
+		if [ ${#array[@]} -lt 4 ]; then
+			echo "ERROR: Line $LINE in CSV file does not have enough fields"
+			echo "(expected at least 4 instead of ${#array[@]}.)"
+			exit 1
+		fi
+
+		ORCID=${array[2]}
+		# Remove any unneeded characters from ORCID, including the URL.
+		ORCID=$(echo $ORCID | sed -r 's@^.*([0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]).*$@\1@g')
+		# Check format of ORCID.  Refer to:
+		# https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
+		if [[ ! $ORCID =~ [0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X] ]]; then
+			echo "ERROR: ORCID on Line $LINE in CSV file is incorrectly formatted."
+			exit 1
+		fi
+		# Remove dashes from ORCID.
+		ORCID=${ORCID//-/}
+		# Verify ORCID checksum.  Refer to
+		# https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
+		CHECKSUM=0
+		for i in {0..14}; do
+			CHECKSUM=$(((CHECKSUM + ${ORCID:$i:1}) * 2))
+		done
+		CHECKSUM=$(((12 - (CHECKSUM % 11)) % 11))
+		if [ $CHECKSUM -eq 10 ]; then
+			CHECKSUM="X"
+		fi
+		if [ "$CHECKSUM" != "${ORCID:15:1}" ]; then
+			echo "ERROR: ORCID on Line $LINE in CSV file has an incorrect checksum."
+			exit 1
+		fi
+
+		FULLNAME=${array[3]}
+		# Remove commas and periods from the full name.
+		NAME=${FULLNAME//,/}
+		NAME=${NAME//\./}
+		# Replace hyphens in the full name with spaces.
+		NAME=${NAME//-/\ }
+		# Remove any known prefixes and suffixes from the full name.
+		NAME=$(echo $NAME | sed -E 's@( Jr){1,}( |$)@\2@gi' | \
+			sed -E 's@( Sr){1,}( |$)@\2@gi' | sed -E 's@( [IV]+){1,}( |$)@\2@g' |
+			sed -E 's@( PhD){1,}( |$)@\2@gi' | sed -r 's@^( *Dr){1,} @@gi')
+		# Read the full name (without prefixes, suffixes, or punctuation) into an
+		# array.
+		NAMES=($NAME)
+		if [ ${#NAMES[@]} -lt 1 ]; then
+			echo "ERROR: Full name on Line $LINE in CSV file is incorrectly formatted."
+			exit 1
+		fi
+		# Parse initials from full name.
+		INITIALS=
+		for i in "${!NAMES[@]}"; do
+			INITIALS=${INITIALS}${NAMES[$i]:0:1}
+		done
+		# Make initials lowercase and make sure there are no illegal characters.
+		INITIALS=${INITIALS,,}
+		if [[ ! $INITIALS =~ ^[a-z]+$ ]]; then
+			echo "ERROR: Full name on Line $LINE in CSV file is incorrectly formatted."
+			exit 1
+		fi
+
+		# Add username (up to 4 lowercase initials + last 4 digits of ORCID) to
+		# username array.
+		USERNAMES+=("${INITIALS:0:4}${ORCID:12:4}")
+
+		# Add full name to full name array.
+		FULLNAMES+=("${array[3]}")
+
+		((LINE++))
+	done < <(tail -n +2 "$CSVFILE")
+
+	# Create ~/.smc-usermanage directory if it doesn't exist, and prevent anyone
+	# except root from seeing the directory.
+	createdir ~/.smc-usermanage $USER 700
+	# Ensure that any files subsequently created in the directory by this script
+	# can only be seen by the current user.
+	umask 0077
+
+	# Download Slicer
+	echo "Downloading Slicer (if necessary) ..."
+	createdir ~/.smc-usermanage/slicer $USER 700
+	pushd ~/.smc-usermanage/slicer >/dev/null 2>&1
+	SLICERFILE=$(echo $SLICERURL | sed -r 's@.*/@@g')
+	if [ "$SLICERFILE" = "" ]; then
+		echo "ERROR: Slicer URL is incorrectly formatted."
+		exit 1
+	fi
+	wget -nv -c "$SLICERURL"
+	# Delete all other files in ~/.smc-usermanage/slicer.  This ensures that only
+	# the current version (specified in SLICERURL) is cached.
+	find . -type f ! -name "$SLICERFILE" -delete
+	popd >/dev/null 2>&1
+	# Unpack Slicer.
+	createdir ~/.smc-usermanage/slicer.unpacked $USER 700
+	pushd ~/.smc-usermanage/slicer.unpacked >/dev/null 2>&1
+	if [ ! -d "$SLICERFILE" ]; then
+		echo "Unpacking Slicer to ~/.smc-usermanage/slicer.unpacked/$SLICERFILE ..."
+		tar xf ~/.smc-usermanage/slicer/"$SLICERFILE"
+		mv Slicer "$SLICERFILE"
+	fi
+	# Delete all other directories in ~/.smc-usermanage/slicer.unpacked.  This
+	# ensures that only the current version (specified in SLICERURL) is cached.
+	find . -mindepth 1 -maxdepth 1 -type d ! -name "$SLICERFILE" -exec rm -rf {} +
+	popd >/dev/null 2>&1
+
+	# Iterate over user names, creating resources as necessary.
+	for i in "${!USERNAMES[@]}"; do
+
+		echo
+
+		# Create user account if it doesn't already exist.
+		userexists ${USERNAMES[$i]} || (
+			echo "Creating user ${USERNAMES[$i]} ..."
+			useradd -m -c "${FULLNAMES[$i]}" -G docker -U ${USERNAMES[$i]} -s /bin/bash
+			chmod 700 /home/${USERNAMES[$i]}
+			# Generate random initial password for user.
+			PASSWORD=$(cat /dev/urandom | tr -dc A-Za-z0-9 | head -c10)
+			# Save random initial password to ~/.smc-usermanage/initial_passwords.txt
+			echo "${USERNAMES[$i]}, $PASSWORD" >>~/.smc-usermanage/initial_passwords.txt
+			echo "Random initial password for ${USERNAMES[$i]} has been saved to"
+			echo "~/.smc-usermanage/initial_passwords.txt"
+			# Set initial password for user account.
+			echo "${USERNAMES[$i]}:$PASSWORD" | chpasswd
+			# Unset PASSWORD variable to minimize the chances of snooping.
+			PASSWORD=
+			# Force the user to change their password at the next login.
+			passwd -e ${USERNAMES[$i]}
+		)
+
+		# Create /mydata directory if it doesn't exist, and ensure that everyone
+		# can see the directories under it.
+		createdir /mydata $USER 755
+		# Create /mydata/{user} and subdirectories if they don't exist.
+		createdir /mydata/${USERNAMES[$i]} ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/Downloads ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/SlicerScenes ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/.config ${USERNAMES[$i]} 700
+		createdir /mydata/${USERNAMES[$i]}/.config/NA-MIC ${USERNAMES[$i]} 700
+		# Create /bound directory if it doesn't exist, and ensure that everyone
+		# can see the directories under it.
+		createdir /bound $USER 755
+		# Create /bound/{user} if it doesn't exist.
+		createdir /bound/${USERNAMES[$i]} ${USERNAMES[$i]} 700
+		# Add /bound/{user} mount entry to /etc/fstab, if it doesn't exist.
+		grep -Eq "^\/mydata\/${USERNAMES[$i]} \/bound\/${USERNAMES[$i]} " /etc/fstab || (
+			echo "Adding /bound/${USERNAMES[$i]} entry to /etc/fstab ..."
+			echo "/mydata/${USERNAMES[$i]} /bound/${USERNAMES[$i]} fuse.bindfs force-user=ubuntu,force-group=ubuntu 0 0" >>/etc/fstab
+		)
+		# Mount /bound/{user} if it isn't already mounted.
+		mount | grep -Eq "^\/mydata\/${USERNAMES[$i]} on \/bound\/${USERNAMES[$i]}" || (
+			echo "Mounting /bound/${USERNAMES[$i]} ..."
+			mount /bound/${USERNAMES[$i]}
+		)
+
+		# Copy default Slicer.ini to /mydata/{user}/.config/NA-MIC/, if Slicer.ini
+		# doesn't already exist in that location.
+		if [ ! -f /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini ]; then
+			echo "Copying default Slicer.ini to /mydata/${USERNAMES[$i]}/.config/NA-MIC/ ..."
+			cp $SCRIPTDIR/Slicer.ini /mydata/${USERNAMES[$i]}/.config/NA-MIC/
+			chown ${USERNAMES[$i]}:${USERNAMES[$i]} /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
+			chmod 600 /mydata/${USERNAMES[$i]}/.config/NA-MIC/Slicer.ini
+		fi
+		# Copy default Slicer NA-MIC directory to /mydata/{user}/Slicer/, if that
+		# directory doesn't already exist.
+		createdir /mydata/${USERNAMES[$i]}/Slicer ${USERNAMES[$i]} 700
+		if [ ! -d /mydata/${USERNAMES[$i]}/Slicer/NA-MIC ]; then
+			echo "Copying default Slicer NA-MIC directory to /mydata/${USERNAMES[$i]}/Slicer/NA-MIC ..."
+			rsync -alpq ~/.smc-usermanage/slicer.unpacked/"$SLICERFILE"/NA-MIC/ /mydata/${USERNAMES[$i]}/Slicer/NA-MIC
+		fi
+		# Synchronize the other Slicer directories into /mydata/{user}/Slicer/, if
+		# necessary.
+		echo "Upgrading Slicer installation in /mydata/${USERNAMES[$i]}/Slicer (if necessary) ..."
+		rsync -alpq --delete ~/.smc-usermanage/slicer.unpacked/"$SLICERFILE"/ /mydata/${USERNAMES[$i]}/Slicer --exclude NA-MIC
+		# Ensure that the Slicer directory is owned by and is only visible to the
+		# user.
+		chown -R ${USERNAMES[$i]}:${USERNAMES[$i]} /mydata/${USERNAMES[$i]}/Slicer
+		chmod g-rwx,o-rwx -R /mydata/${USERNAMES[$i]}/Slicer
+
+		# Create default turbovncserver.conf file for the user, if necessary.
+		createdir /home/${USERNAMES[$i]}/.vnc ${USERNAMES[$i]} 700
+		if [ ! -f /home/${USERNAMES[$i]}/.vnc/turbovncserver.conf ]; then
+			echo "Creating initial turbovncserver.conf in /home/${USERNAMES[$i]}/.vnc/ ..."
+			cp /etc/turbovncserver.conf /home/${USERNAMES[$i]}/.vnc/
+			chown ${USERNAMES[$i]}:${USERNAMES[$i]} /home/${USERNAMES[$i]}/.vnc/turbovncserver.conf
+			chmod 600 /home/${USERNAMES[$i]}/.vnc/turbovncserver.conf
+			echo '$xstartup = "/opt/SlicerMorphCloud/run.novgl";' >>/home/${USERNAMES[$i]}/.vnc/turbovncserver.conf
+		fi
+
+	done
+
+	echo
+	echo "SUCCESS!"
+
+#==============
+# User deletion
+#==============
+
+elif [ "$MODE" = "delete" ]; then
+
+	USERTODEL=$2
+	PROMPT=1
+	if [ $# -gt 2 ]; then
+		if [ "$3" = "-y" ]; then
+			PROMPT=0
+		fi
+	fi
+
+	userexists $USERTODEL && (
+		# Delete the user account.  Note that this also deletes the user's primary
+		# group and removes the user from the docker group.
+		echo Deleting user $USERTODEL ...
+		userdel $USERTODEL
+	)
+
+	# Silently delete the user's entry in ~/.smc-usermanage/initial_passwords.txt
+	sed -i "/^$USERTODEL, /d" ~/.smc-usermanage/initial_passwords.txt
+
+	# Optionally delete user's home directory, if it exists.
+	deletedir /home/$USERTODEL "user's home directory" $PROMPT
+
+	# Unmount /bound/{user} (if mounted) and remove the directory.
+	if [ -d /bound/$USERTODEL ]; then
+		mount | grep -Eq "^\/mydata\/$USERTODEL on \/bound\/$USERTODEL" && (
+			echo "Unmounting /bound/$USERTODEL ..."
+			umount /bound/$USERTODEL
+		)
+		rmdir /bound/$USERTODEL
+	fi
+	# Remove /bound/{user} mount entry from /etc/fstab, if it exists.
+	grep -Eq "^\/mydata\/$USERTODEL \/bound\/$USERTODEL " /etc/fstab && (
+		echo "Removing /bound/$USERTODEL entry from /etc/fstab ..."
+		sed -i "/^\/mydata\/$USERTODEL \/bound\/$USERTODEL.*/d" /etc/fstab
+	)
+
+	# Optionally delete user's data directory, if it exists.
+	deletedir /mydata/$USERTODEL "user's data directory" $PROMPT
+
+	echo
+	echo "SUCCESS!"
+
+fi

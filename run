@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -u
 set -e
@@ -33,6 +33,20 @@ esac
 chmod 444 $XAUTHFILE
 
 . `dirname $0`/dockername
+# Execute /bound/$USER/.smc-docker/run, if it exists and is executable.  This
+# allows for per-user customization of the Docker container.  The per-user run
+# script can override DOCKERUSER or DOCKERIMAGE, which will cause this script
+# to run a different Docker image than the default image that was set by the
+# dockername script.  The per-user run script can also run the Docker image
+# itself and set DOCKERSTARTED=1 to instruct this script not to run the Docker
+# image.
+if [ -x /bound/$USER/.smc-docker/run ]; then
+  echo "Executing /bound/$USER/.smc-docker/run ..."
+  . /bound/$USER/.smc-docker/run
+  if [ $DOCKERSTARTED = 1 ]; then
+    exit 0
+  fi
+fi
 docker run \
         --device=/dev/dri \
         -e DISPLAY \
@@ -42,11 +56,13 @@ docker run \
         --rm \
         -v $XAUTHFILE:/home/docker/.Xauthority \
         -v /tmp/.X11-unix:/tmp/.X11-unix \
-        -v /data/docker_bind/$USER:/home/docker/mydata \
-        -v /data/docker_bind/$USER/Downloads:/home/docker/Downloads \
+        -v /bound/$USER:/home/docker/MyData \
+        -v /bound/$USER/Downloads:/home/docker/Downloads \
+        -v /bound/$USER/Slicer:/home/docker/Slicer \
+        -v /bound/$USER/.config/NA-MIC:/home/docker/.config/NA-MIC \
         --memory=16g \
         --memory-reservation=10g \
         --cpus=4 \
-        --name $USER \
+        --name $USER-${DISPLAY//:} \
         $DOCKERUSER/$DOCKERIMAGE \
         xfce4-session

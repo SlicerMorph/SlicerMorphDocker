@@ -5,5 +5,5 @@ Exec=/home/docker/Slicer/Slicer ${SLICER_ARGUMENTS}
 Terminal=false
 Type=Application
 Encoding=UTF-8
-Icon=/home/docker/Slicer/Slicer.png
+Icon=/usr/local/shared/backgrounds/Slicer.png
 Categories=Utilities;
