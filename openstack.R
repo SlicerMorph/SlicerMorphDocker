@@ -15,8 +15,10 @@ split.UUID=function(X){
   return(temp[[1]][2])
 }
 
+find.what=" tests"
+
 dat=workshop=NULL
-for (i in 4:(length(servers)-1)) if (strtrim(split.name(servers[i]), 9) == " workshop") workshop=c(workshop, i)
+for (i in 4:(length(servers)-1)) if (strtrim(split.name(servers[i]), nchar(find.what)) == find.what) workshop=c(workshop, i)
 
 ip = "openstack server show -c addresses"
 pass = "openstack server show --os-compute-api-version=2.26 -c tags -f shell"
