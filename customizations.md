@@ -1,7 +1,7 @@
 ### Workspace changer background color
-By default XFCE4 workspace changer background and foreground is identical, making it impossible to tell with workspace is active. 
+By default XFCE4 workspace changer background and foreground is identical, making it impossible to tell which workspace is active. 
 
-As a workaround, create file at ~/.config/gtk-3.0/gtk.css with contents:
+As a workaround, append/create file at `~/.config/gtk-3.0/gtk.css` with contents:
 
 ```
 wnck-pager:selected {
@@ -9,8 +9,47 @@ wnck-pager:selected {
 wnck-pager:hover {
     background-color: gray; }
 ```
-
 to have a gray colored background for the active workspace.
+
+### disable screen saver 
+xfce4 screensaver is enabled by default with 5 minutes of inteactivity. To disable create `~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-screensaver.xml` with contents:
+```
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-screensaver" version="1.0">
+  <property name="saver" type="empty">
+    <property name="mode" type="int" value="0"/>
+    <property name="enabled" type="bool" value="false"/>
+    <property name="idle-activation" type="empty">
+      <property name="delay" type="int" value="60"/>
+    </property>
+  </property>
+  <property name="lock" type="empty">
+    <property name="enabled" type="bool" value="false"/>
+    <property name="saver-activation" type="empty">
+      <property name="delay" type="int" value="60"/>
+    </property>
+  </property>
+</channel>
+```
+### create Slicer launcher
+path to 3D icon within Slicer tree is `./lib/Slicer-5.6/qt-scripted-modules/Resources/SlicerWatermark.png`
+1. create this folder `~/.config/xfce4/panel/launcher-21/Slicer.desktop` with contents
+```
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=3D Slicer
+Comment=
+Exec=bash -ic '/home/exouser/Slicer/Slicer'
+Icon=/home/exouser/Slicer/lib/Slicer-5.6/qt-scripted-modules/Resources/SlicerWatermark.png
+Path=
+Terminal=false
+StartupNotify=false
+```
+2. change permission 775
+3. This assumes Slicer is installed under `/home/exouser/Slicer`. if not modify paths accordingly. 
+
 
 ### Making XFCE4 default user interface
 to replace gnome with xfce4, edit **/etc/vnc/xstartup** and:
@@ -25,7 +64,6 @@ and reboot the system.
 
 
 unfortunately this change does not preserved, even if we image a working system. [Suggested way](https://gitlab.com/exosphere/exosphere/-/issues/955) is to make the permanent changes to the exosphere in a fork, and point that to the ansible. Modified code that seems to work is below. This needs to be pasted to Boot Script tab of the Advanced Options in the the instance launch interface. 
-
 
 ```
 #cloud-config
