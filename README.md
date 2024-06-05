@@ -1,5 +1,4 @@
-# SlicerMorphCloud
-Docker for running SlicerMorph on Cloud (optionaly GPU accelerated using EGL support in VirtualGL project). 
+# SlicerMorphDocker is for running SlicerMorph on Cloud (optionaly GPU accelerated using EGL support in VirtualGL project). 
 
 ## Overview 
 This repository enable you to launch a VM (a host) to deploy SlicerMorpCloud docker containers per user-basis. Accounts are created on the host, and users access to the docker images using their host ssh username and passwd via TurboVNC client. Docker runtime scripts allow you to adjust resources (GPU, CPU, memory, data storage) per user-basis.  
